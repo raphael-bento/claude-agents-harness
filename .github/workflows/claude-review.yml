@@ -1,0 +1,58 @@
+# Review automatique des PR par Claude, payée sur ton abonnement Pro/Max (pas d'API key).
+#
+# Optimisation quota :
+#  - se déclenche à l'ouverture de la PR / passage en "ready", PAS à chaque push ;
+#  - pour relancer une review après des corrections : ajoute le label "claude-review" à la PR ;
+#  - modèle Sonnet, nombre de tours limité ;
+#  - "concurrency" annule une review en cours si une nouvelle démarre.
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, labeled]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: >
+      github.event.pull_request.draft == false &&
+      (github.event.action != 'labeled' || github.event.label.name == 'claude-review')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Tu es le reviewer défini dans .claude/agents/reviewer.md : applique exactement
+            sa méthode, ses priorités et son format de rapport, et respecte CLAUDE.md.
+
+            1. Lis le diff avec `gh pr diff ${{ github.event.pull_request.number }}`.
+            2. Pour chaque problème 🔴 ou 🟠 précis, laisse un commentaire inline sur la ligne concernée.
+            3. Poste le rapport complet en un seul commentaire avec `gh pr comment`.
+            Ne modifie aucun fichier.
+          claude_args: |
+            --model sonnet
+            --max-turns 12
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+
+      - name: Retire le label pour pouvoir relancer plus tard
+        if: always() && github.event.action == 'labeled'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr edit ${{ github.event.pull_request.number }} --remove-label claude-review || true
