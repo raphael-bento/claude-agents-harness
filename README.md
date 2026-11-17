@@ -53,6 +53,21 @@ gh label create claude-review --color 7057ff --description "Relancer la review C
 
 > ⚠️ Ne définis **pas** `ANTHROPIC_API_KEY` dans ton environnement : sinon Claude Code facture à l'usage via l'API au lieu d'utiliser ton abonnement.
 
+## Installation sous Windows
+
+Dans PowerShell (sans droits admin) :
+```powershell
+winget install Git.Git GitHub.cli          # Git Bash + gh
+irm https://claude.ai/install.ps1 | iex    # Claude Code
+# rouvre un terminal, puis :
+gh auth login
+claude                                     # connexion avec le compte Pro
+claude setup-token                         # copie le token affiché
+gh secret set CLAUDE_CODE_OAUTH_TOKEN      # colle-le
+pip install -e ".[dev]"
+```
+Le mode duo se lance avec `.\scripts\duo.ps1` au lieu de `scripts/duo.sh` : il ouvre deux onglets Windows Terminal au lieu de tmux.
+
 ## Mode duo : builder + reviewer (recommandé sur Pro)
 
 ```bash

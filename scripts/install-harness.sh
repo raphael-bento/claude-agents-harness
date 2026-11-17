@@ -20,6 +20,8 @@ items=(
   scripts/agents-up.sh
   scripts/agents-down.sh
   scripts/duo.sh
+  scripts/duo.ps1
+  .gitattributes
   scripts/reviewer-watch.sh
   scripts/roadmap-to-issues.py
 )
