@@ -19,6 +19,9 @@ items=(
   .github/pull_request_template.md
   scripts/agents-up.sh
   scripts/agents-down.sh
+  scripts/duo.sh
+  scripts/reviewer-watch.sh
+  scripts/roadmap-to-issues.py
 )
 
 for item in "${items[@]}"; do

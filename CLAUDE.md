@@ -31,6 +31,12 @@ C'est le "harness" partagé : si une règle doit s'appliquer à tous les agents,
 - Data science : seeds fixées (`random_state=42`), pas de fuite de données entre train/test,
   pas de notebook commité sans sorties nettoyées.
 
+## Mode duo (2 sessions en parallèle, voir ROADMAP.md)
+- **builder** : prend les issues labellisées `builder` (`/next`), une branche et une PR par issue.
+  Il ne merge jamais et ne relit pas son propre travail.
+- **reviewer** : relit les PR sans label `reviewed`, ne modifie jamais le code.
+- Labels : `reviewed` = relue ; `changes-requested` = le builder doit corriger (`/fix-review <PR>`).
+
 ## Agents disponibles (`.claude/agents/`)
 | Agent | Rôle | Modèle |
 |---|---|---|

@@ -53,6 +53,22 @@ gh label create claude-review --color 7057ff --description "Relancer la review C
 
 > ⚠️ Ne définis **pas** `ANTHROPIC_API_KEY` dans ton environnement : sinon Claude Code facture à l'usage via l'API au lieu d'utiliser ton abonnement.
 
+## Mode duo : builder + reviewer (recommandé sur Pro)
+
+```bash
+python scripts/roadmap-to-issues.py --apply   # une fois : ROADMAP.md → issues GitHub
+scripts/duo.sh                                # lance les 2 agents
+tmux attach -t duo-claude-agents-harness
+```
+
+| Agent | Ce qu'il fait | Coût en quota |
+|---|---|---|
+| **builder** | `/next` : prend l'issue `builder` suivante, code, teste, ouvre la PR. Corrige avec `/fix-review` quand le reviewer demande des changements | Sonnet, seulement quand il travaille |
+| **reviewer** | `reviewer-watch.sh` vérifie les PR toutes les 2 min avec `gh` (gratuit). Il réveille Claude seulement pour une PR pas encore relue, poste le rapport et pose `reviewed` / `changes-requested` | Nul tant qu'il n'y a pas de nouvelle PR |
+| **toi** | Tu écris les issues, tu merges, tu tranches | — |
+
+La feuille de route complète est dans [ROADMAP.md](ROADMAP.md).
+
 ## Utilisation au quotidien
 
 **Une tâche, un agent :**
@@ -72,14 +88,14 @@ scripts/agents-down.sh                           # nettoie ce qui est mergé
 ```
 
 **Sur GitHub :**
-- Ouvre une PR → Claude poste une review (rapport + commentaires inline).
-- Tu as corrigé ? Ajoute le label `claude-review` pour relancer.
+- En mode duo, c'est l'agent reviewer local qui relit chaque PR.
+- PC éteint ? Ajoute le label `claude-review` à la PR, et GitHub Actions fait la review à sa place.
 - Écris `@claude corrige le point 🔴 du reviewer` en commentaire → il pousse le correctif.
 
 ## Pourquoi c'est optimisé pour un abonnement Pro
 
 - **Bon modèle pour chaque rôle** : reviewer et tester sur Sonnet, docs sur Haiku. Opus seulement si tu le choisis pour la session principale.
-- **Review déclenchée à l'ouverture de la PR, pas à chaque push**, avec relance manuelle via un label.
+- **Le reviewer ne consomme rien tant qu'il n'y a pas de nouvelle PR.** La surveillance passe par `gh`, et la review GitHub ne se lance que sur label.
 - **Les hooks font le travail mécanique** (format, lint, tests) : ça ne consomme pas de quota.
 - **`--max-turns`** borne chaque exécution dans GitHub Actions.
 - **2 ou 3 agents en parallèle maximum sur Pro.** Le quota (sur 5 h et à la semaine) est partagé entre claude.ai, Claude Code et les Actions.

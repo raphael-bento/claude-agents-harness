@@ -1,15 +1,17 @@
 # Review automatique des PR par Claude, payée sur ton abonnement Pro/Max (pas d'API key).
 #
+# Mode duo : c'est l'agent reviewer local (scripts/reviewer-watch.sh) qui relit les PR.
+# Ce workflow sert de SECOURS quand ton PC est éteint : ajoute le label "claude-review" à la PR.
+# (Pour une review automatique sans duo, ajoute "opened" et "ready_for_review" aux types ci-dessous.)
+#
 # Optimisation quota :
-#  - se déclenche à l'ouverture de la PR / passage en "ready", PAS à chaque push ;
-#  - pour relancer une review après des corrections : ajoute le label "claude-review" à la PR ;
 #  - modèle Sonnet, nombre de tours limité ;
 #  - "concurrency" annule une review en cours si une nouvelle démarre.
 name: Claude PR Review
 
 on:
   pull_request:
-    types: [opened, ready_for_review, labeled]
+    types: [labeled]
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.number }}
@@ -17,9 +19,7 @@ concurrency:
 
 jobs:
   review:
-    if: >
-      github.event.pull_request.draft == false &&
-      (github.event.action != 'labeled' || github.event.label.name == 'claude-review')
+    if: github.event.pull_request.draft == false && github.event.label.name == 'claude-review'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
