@@ -47,6 +47,8 @@ def test_accuracy_length_mismatch_raises():
         ([1, 1, 1], [1, 1, 1], [[0, 0], [0, 3]]),  # une seule classe
         ([0, 0], [0, 0], [[2, 0], [0, 0]]),
         ([], [], [[0, 0], [0, 0]]),
+        ([1, 1, 0], [1, 0, 0], [[1, 0], [1, 1]]),  # asymétrique : distingue fp de fn
+        ([True, False], [True, True], [[0, 1], [0, 1]]),  # bool accepté
     ],
 )
 def test_confusion_matrix_known_cases(y_true, y_pred, expected):
@@ -58,6 +60,10 @@ def test_confusion_matrix_length_mismatch_raises():
         confusion_matrix([1, 0], [1])
 
 
-def test_confusion_matrix_invalid_label_raises():
+@pytest.mark.parametrize(
+    ("y_true", "y_pred"),
+    [([2], [1]), ([1], [2]), ([-1], [1]), ([1], [-1]), ([None], [1]), ([1.0], [1]), ([1], [0.0])],
+)
+def test_confusion_matrix_invalid_label_raises(y_true, y_pred):
     with pytest.raises(ValueError):
-        confusion_matrix([2], [1])
+        confusion_matrix(y_true, y_pred)
