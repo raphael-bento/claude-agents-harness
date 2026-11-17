@@ -53,10 +53,10 @@ $watchScript = ($root -replace "\\", "/") + "/scripts/reviewer-watch.sh"
 
 if (Get-Command wt -ErrorAction SilentlyContinue) {
     wt new-tab --title builder -d "$builderDir" powershell -NoExit -Command $builderCmd `; `
-       new-tab --title reviewer -d "$reviewerDir" "$bash" -lc "REVIEWER_MODEL=$ReviewerModel '$watchScript'; exec bash"
+       new-tab --title reviewer -d "$reviewerDir" "$bash" -lc "REVIEWER_MODEL=$ReviewerModel '$watchScript'"
 } else {
     Start-Process powershell -WorkingDirectory $builderDir -ArgumentList "-NoExit", "-Command", $builderCmd
-    Start-Process $bash -WorkingDirectory $reviewerDir -ArgumentList "-lc", "REVIEWER_MODEL=$ReviewerModel '$watchScript'; exec bash"
+    Start-Process $bash -WorkingDirectory $reviewerDir -ArgumentList "-lc", "REVIEWER_MODEL=$ReviewerModel '$watchScript'"
 }
 
 Write-Host "✔ duo lancé (builder: $BuilderModel, reviewer: $ReviewerModel)" -ForegroundColor Green
